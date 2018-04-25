@@ -1,4 +1,4 @@
-# **This project helps you debug object_detection using tensorflow eager excution model!**
+# **This project helps you debug object_detection(SSD,FASTER...) using tensorflow eager excution model!**
 
 1. The difference between train_for_eager_excution.py and origin train.py file is that the dataset object was replaced.
 2. You can debug your ssd,faster,mask-faster using eager excution model as before,which is very convenient!
