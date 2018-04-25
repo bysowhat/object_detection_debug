@@ -46,7 +46,7 @@ import json
 import os
 import tensorflow as tf
 
-from object_detection.my import trainer
+from object_detection import trainer
 from object_detection.builders import dataset_builder
 from object_detection.my.builders import model_builder
 from object_detection.utils import config_util
