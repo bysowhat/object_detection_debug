@@ -46,7 +46,7 @@ import json
 import os
 import tensorflow as tf
 
-from object_detection import trainer
+from object_detection.my.debug import trainer
 from object_detection.builders import dataset_builder
 from object_detection.my.builders import model_builder
 from object_detection.utils import config_util
@@ -55,7 +55,8 @@ import sys
 import cv2
 import numpy as np
 sys.path.append('../')
-
+import tensorflow.contrib.eager as tfe
+tfe.enable_eager_execution(device_policy=tfe.DEVICE_PLACEMENT_SILENT)
 
 def get_debug_dataset():
     #one tfrecord example
@@ -98,10 +99,11 @@ def get_debug_dataset():
        })
     
     return dataset
-  
-tf.enable_eager_execution()
-tf.executing_eagerly() 
-import tensorflow.contrib.eager as tfe
+
+# import tensorflow.contrib.eager as tfe
+# tfe.enable_eager_execution(device_policy=tfe.DEVICE_PLACEMENT_SILENT) 
+# tf.executing_eagerly()
+
 
 
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -110,7 +112,7 @@ flags = tf.app.flags
 flags.DEFINE_string('master', '', 'Name of the TensorFlow master to use.')
 flags.DEFINE_integer('task', 0, 'task id')
 flags.DEFINE_integer('num_clones', 1, 'Number of clones to deploy per worker.')
-flags.DEFINE_boolean('clone_on_cpu', False,
+flags.DEFINE_boolean('clone_on_cpu', True,
                      'Force clones to be deployed on CPU.  Note that even if '
                      'set to False (allowing ops to run on gpu), some ops may '
                      'still be run on the CPU if they have no GPU kernel.')
@@ -174,7 +176,8 @@ def main(_):
 #     dataset = datasetmy.batch(1)
     for batch in tfe.Iterator(datasetmy):
 #          print(batch)
-      return batch   
+#       return batch
+      return batch['image'], batch['groundtruth_boxes'], batch['groundtruth_classes'],None, None   
   
   create_input_dict_fn = get_next
 
@@ -214,7 +217,10 @@ def main(_):
     task = task_info.index
     is_chief = (task_info.type == 'master')
     master = server.target
-
+    
+  print(tf.test.is_gpu_available()) #False ??????
+  print(tf.test.gpu_device_name())
+#   with tf.device('/gpu:0'):#GPUs specified manually is required in eager excution model
   trainer.train(create_input_dict_fn, model_fn, train_config, master, task,
                 FLAGS.num_clones, worker_replicas, FLAGS.clone_on_cpu, ps_tasks,
                 worker_job_name, is_chief, FLAGS.train_dir)
