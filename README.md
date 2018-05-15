@@ -70,16 +70,63 @@
 
    ​
 
-7. remove outputs_collections=end_points_collection in resnet_v1.py 
+7. remove outputs_collections=end_points_collection in resnet_v1.py resnet_v1fun
 
    Because outputs_collections using the attribute of 'alias' in tensor,however,the tensor has no 'alias' in eager excution model.
 
-   ![1526350488487](C:\Users\baiyu9\AppData\Local\Temp\1526350488487.png)
+   ```
+   with tf.variable_scope(scope, 'resnet_v1', [inputs], reuse=reuse) as sc:
+       with slim.arg_scope([slim.conv2d, bottleneck,
+                            resnet_utils.stack_blocks_dense]):
+         with slim.arg_scope([slim.batch_norm], is_training=is_training):
+           net = inputs
+           if include_root_block:
+             if output_stride is not None:
+               if output_stride % 4 != 0:
+                 raise ValueError('The output_stride needs to be a multiple of 4.')
+               output_stride /= 4
+             net = resnet_utils.conv2d_same(net, 64, 7, stride=2, scope='conv1')
+             net = slim.max_pool2d(net, [3, 3], stride=2, scope='pool1')
+           net, end_points = resnet_utils.stack_blocks_dense(net, blocks, output_stride,
+                                                 store_non_strided_activations)
+   ```
 
    ​
 
-   add net outputs by hand in resnet_utils.py
+   add net outputs by hand in resnet_utils.py stack_blocks_dense fun
 
-   ![1526350551417](C:\Users\baiyu9\AppData\Local\Temp\1526350551417.png)
+   ```
+   # The atrous convolution rate parameter.
+     rate = 1
+
+     end_points = {}
+     
+     for block in blocks:
+       with tf.variable_scope(block.scope, 'block', [net]) as sc:
+         block_stride = 1
+         for i, unit in enumerate(block.args):
+           if store_non_strided_activations and i == len(block.args) - 1:
+             # Move stride from the block's last unit to the end of the block.
+             block_stride = unit.get('stride', 1)
+             unit = dict(unit, stride=1)
+
+           with tf.variable_scope('unit_%d' % (i + 1), values=[net]):
+             # If we have reached the target output_stride, then we need to employ
+             # atrous convolution with stride=1 and multiply the atrous rate by the
+             # current unit's stride for use in subsequent layers.
+             if output_stride is not None and current_stride == output_stride:
+               net = block.unit_fn(net, rate=rate, **dict(unit, stride=1))
+               rate *= unit.get('stride', 1)
+
+             else:
+               net = block.unit_fn(net, rate=1, **unit)
+               current_stride *= unit.get('stride', 1)
+               if output_stride is not None and current_stride > output_stride:
+                 raise ValueError('The target output_stride cannot be reached.')
+
+         end_points[block.scope] = net
+   ```
+
+   ​
 
 8. Using tensorflow-cpu only.Because the we have to set device(gpu or cpu) by hand in eager excution model.
