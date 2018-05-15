@@ -70,7 +70,9 @@
 
    ​
 
-7. remove outputs_collections=end_points_collection in resnet_v1.py
+7. remove outputs_collections=end_points_collection in resnet_v1.py 
+
+   Because outputs_collections using the attribute of 'alias' in tensor,however,the tensor has no 'alias' in eager excution model.
 
    ![1526350488487](C:\Users\baiyu9\AppData\Local\Temp\1526350488487.png)
 
