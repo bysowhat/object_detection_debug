@@ -10,7 +10,7 @@
 
 5. There are another three changes in code you need to make:
 
-6. The dataset input:  get_next function
+6. **The dataset input:  get_next function**
 
    ```
    def get_debug_dataset():
@@ -70,7 +70,7 @@
 
    ​
 
-7. remove outputs_collections=end_points_collection in resnet_v1.py resnet_v1fun
+7. **remove outputs_collections**=end_points_collection in resnet_v1.py resnet_v1fun
 
    Because outputs_collections using the attribute of 'alias' in tensor,however,the tensor has no 'alias' in eager excution model.
 
@@ -93,7 +93,7 @@
 
    ​
 
-   add net outputs by hand in resnet_utils.py stack_blocks_dense fun
+   **add net outputs by hand** in resnet_utils.py stack_blocks_dense fun
 
    ```
    # The atrous convolution rate parameter.
@@ -129,4 +129,4 @@
 
    ​
 
-8. Using tensorflow-cpu only.Because the we have to set device(gpu or cpu) by hand in eager excution model.
+8. **Using tensorflow-cpu only**.Because the we have to set device(gpu or cpu) by hand in eager excution model.
