@@ -96,7 +96,7 @@
 
    ​
 
-   **add net outputs by hand** in resnet_utils.py stack_blocks_dense fun
+   **add net outputs manually ** in resnet_utils.py stack_blocks_dense fun
 
    ```
    # The atrous convolution rate parameter.
@@ -132,7 +132,7 @@
 
    ​
 
-8. **Using tensorflow-cpu only**.Because the we have to set device(gpu or cpu) by hand in eager excution model.
+8. **Using tensorflow-cpu only**.Because the we have to set device(gpu or cpu) manually in eager excution model.
 
 9. **If debugging rfcn**, these changs should also be made in core/post_processing.py/batch_multiclass_non_max_suppression fun
 
