@@ -29,7 +29,10 @@
        image = np.expand_dims(image, 0)
        image = np.expand_dims(image, 0)
        groundtruth_area = [12190.445,   14107.271,     708.26056,   626.9852 ]
-       groundtruth_classes = [4, 1, 1, 2]
+       groundtruth_classes = [[4, 1, 1, 2]]
+       nb_classes = 90
+       targets = np.reshape(groundtruth_classes, -1)
+       groundtruth_classes = np.eye(nb_classes)[targets]
        filename = b'000000391895.jpg'
        num_groundtruth_boxes = 4
        source_id = b'391895'
@@ -65,7 +68,7 @@
        for batch in tfe.Iterator(datasetmy):
    #          print(batch)
    #       return batch
-         return batch['image'], batch['groundtruth_boxes'], batch['groundtruth_classes'], [], []   
+         return batch['image'], [batch['groundtruth_boxes']], [batch['groundtruth_classes']], [], []   
    ```
 
    ​
@@ -130,3 +133,23 @@
    ​
 
 8. **Using tensorflow-cpu only**.Because the we have to set device(gpu or cpu) by hand in eager excution model.
+
+9. **If debugging rfcn**, these changs should also be made in core/post_processing.py/batch_multiclass_non_max_suppression fun
+
+   ```
+    #for eager excution start
+         masks_shape = tf.stack([batch_size, num_anchors, 1, 1, 1])
+         per_image_masks = tf.zeros(masks_shape)
+         per_image_masks = tf.reshape(per_image_masks,
+             [-1, q, per_image_masks.shape[2].value,
+              per_image_masks.shape[3].value])
+         #for eager excution end
+         
+   #       per_image_masks = tf.reshape(
+   #           tf.slice(per_image_masks, 4 * [0],
+   #                    tf.stack([per_image_num_valid_boxes, -1, -1, -1])),
+   #           [-1, q, per_image_masks.shape[2].value,
+   #            per_image_masks.shape[3].value])
+   ```
+
+   ​
